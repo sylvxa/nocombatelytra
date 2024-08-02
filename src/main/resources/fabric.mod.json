@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "nocombatelytra",
+  "version": "${version}",
+  "name": "No Combat Elytra",
+  "description": "Server-side mod that disables the elytra when a player is in combat.",
+  "authors": [
+    "sylvxa"
+  ],
+  "contact": {
+    "repo": "https://github.com/sylvxa/nocombatelytra"
+  },
+  "license": "MIT",
+  "icon": "assets/nocombatelytra/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "lol.sylvie.nocombatelytra.NoCombatElytra"
+    ]
+  },
+  "mixins": [
+    "nocombatelytra.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
