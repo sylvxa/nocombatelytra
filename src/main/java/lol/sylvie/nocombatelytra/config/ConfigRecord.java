@@ -1,3 +1,3 @@
 package lol.sylvie.nocombatelytra.config;
 
-public record ConfigRecord(int combatDuration) {}
+public record ConfigRecord(int combatDuration, boolean mobDamage) {}

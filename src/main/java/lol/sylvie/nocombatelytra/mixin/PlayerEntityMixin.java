@@ -25,12 +25,21 @@ public abstract class PlayerEntityMixin {
     @Shadow public abstract void sendMessage(Text message, boolean overlay);
     @Shadow public abstract void stopGliding();
     Map<UUID, Long> lastDamaged = new HashMap<>();
+
+    @Unique
+    private static boolean isCombat(DamageSource source) {
+        Entity entity = source.getAttacker();
+        if (entity == null) return false;
+        if (NoCombatElytra.CONFIG.get().mobDamage()) return entity.isAlive();
+        return source.isIn(DamageTypeTags.IS_PLAYER_ATTACK) || entity.isPlayer();
+    }
+
     @Inject(method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z", at = @At("TAIL"))
     public void nocombatelytra$storeLastDamaged(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         PlayerEntity thisPlayer = (PlayerEntity) (Object) this;
         if (thisPlayer.equals(source.getAttacker())) return;
 
-        if (source.isIn(DamageTypeTags.IS_PLAYER_ATTACK) || source.getAttacker() instanceof PlayerEntity) {
+        if (isCombat(source)) {
             UUID uuid = getGameProfile().getId();
 
             lastDamaged.put(uuid, System.currentTimeMillis());

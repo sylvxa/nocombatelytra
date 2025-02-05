@@ -12,7 +12,7 @@ import java.io.IOException;
 public class ConfigHandler {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private final File file;
-    private ConfigRecord record = new ConfigRecord(30);
+    private ConfigRecord record = new ConfigRecord(30, false);
 
     public ConfigHandler(File file) {
         this.file = file;
