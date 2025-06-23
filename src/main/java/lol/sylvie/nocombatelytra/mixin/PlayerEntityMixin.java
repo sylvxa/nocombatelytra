@@ -23,7 +23,7 @@ import java.util.UUID;
 public abstract class PlayerEntityMixin {
     @Shadow public abstract GameProfile getGameProfile();
     @Shadow public abstract void sendMessage(Text message, boolean overlay);
-    @Shadow public abstract void stopGliding();
+
     Map<UUID, Long> lastDamaged = new HashMap<>();
 
     @Unique
@@ -43,7 +43,7 @@ public abstract class PlayerEntityMixin {
             UUID uuid = getGameProfile().getId();
 
             lastDamaged.put(uuid, System.currentTimeMillis());
-            stopGliding();
+            thisPlayer.stopGliding();
         }
     }
 
