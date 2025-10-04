@@ -24,6 +24,7 @@ public abstract class PlayerEntityMixin {
     @Shadow public abstract GameProfile getGameProfile();
     @Shadow public abstract void sendMessage(Text message, boolean overlay);
 
+    @Unique
     Map<UUID, Long> lastDamaged = new HashMap<>();
 
     @Unique
@@ -40,7 +41,7 @@ public abstract class PlayerEntityMixin {
         if (thisPlayer.equals(source.getAttacker())) return;
 
         if (isCombat(source)) {
-            UUID uuid = getGameProfile().getId();
+            UUID uuid = getGameProfile().id();
 
             lastDamaged.put(uuid, System.currentTimeMillis());
             thisPlayer.stopGliding();
@@ -49,13 +50,13 @@ public abstract class PlayerEntityMixin {
 
     @Inject(method = "remove", at = @At("TAIL"))
     public void nocombatelytra$resetTimerOnDeath(Entity.RemovalReason reason, CallbackInfo ci) {
-        UUID uuid = getGameProfile().getId();
+        UUID uuid = getGameProfile().id();
         lastDamaged.remove(uuid);
     }
 
     @Inject(method = "checkGliding", at = @At("HEAD"), cancellable = true)
     public void nocombatelytra$addDamageCheck(CallbackInfoReturnable<Boolean> cir) {
-        UUID uuid = getGameProfile().getId();
+        UUID uuid = getGameProfile().id();
         int combatDuration = NoCombatElytra.CONFIG.get().combatDuration();
 
         if (lastDamaged.containsKey(uuid)) {
