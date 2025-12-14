@@ -2,13 +2,13 @@ package lol.sylvie.nocombatelytra.mixin;
 
 import com.mojang.authlib.GameProfile;
 import lol.sylvie.nocombatelytra.NoCombatElytra;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -19,32 +19,32 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-@Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin {
+@Mixin(Player.class)
+public abstract class PlayerMixin {
     @Shadow public abstract GameProfile getGameProfile();
-    @Shadow public abstract void sendMessage(Text message, boolean overlay);
+    @Shadow public abstract void displayClientMessage(Component message, boolean overlay);
 
     @Unique
     Map<UUID, Long> lastDamaged = new HashMap<>();
 
     @Unique
     private static boolean isCombat(DamageSource source) {
-        Entity entity = source.getAttacker();
+        Entity entity = source.getEntity();
         if (entity == null) return false;
         if (NoCombatElytra.CONFIG.get().mobDamage()) return entity.isAlive();
-        return source.isIn(DamageTypeTags.IS_PLAYER_ATTACK) || entity.isPlayer();
+        return source.is(DamageTypeTags.IS_PLAYER_ATTACK) || entity.isAlwaysTicking();
     }
 
-    @Inject(method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z", at = @At("TAIL"))
-    public void nocombatelytra$storeLastDamaged(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        PlayerEntity thisPlayer = (PlayerEntity) (Object) this;
-        if (thisPlayer.equals(source.getAttacker())) return;
+    @Inject(method = "hurtServer(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;F)Z", at = @At("TAIL"))
+    public void nocombatelytra$storeLastDamaged(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        Player thisPlayer = (Player) (Object) this;
+        if (thisPlayer.equals(source.getEntity())) return;
 
         if (isCombat(source)) {
             UUID uuid = getGameProfile().id();
 
             lastDamaged.put(uuid, System.currentTimeMillis());
-            thisPlayer.stopGliding();
+            thisPlayer.stopFallFlying();
         }
     }
 
@@ -54,7 +54,7 @@ public abstract class PlayerEntityMixin {
         lastDamaged.remove(uuid);
     }
 
-    @Inject(method = "checkGliding", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tryToStartFallFlying", at = @At("HEAD"), cancellable = true)
     public void nocombatelytra$addDamageCheck(CallbackInfoReturnable<Boolean> cir) {
         UUID uuid = getGameProfile().id();
         int combatDuration = NoCombatElytra.CONFIG.get().combatDuration();
@@ -66,9 +66,9 @@ public abstract class PlayerEntityMixin {
             if (combatEndTimestamp > now) {
                 cir.setReturnValue(false);
                 int seconds = (int) Math.ceilDiv(combatEndTimestamp - now, 1000);
-                sendMessage(Text.literal("You may use your elytra in %s second(s)!"
+                displayClientMessage(Component.literal("You may use your elytra in %s second(s)!"
                                 .replace("%s", String.valueOf(seconds)))
-                                .formatted(Formatting.RED), true);
+                                .withStyle(ChatFormatting.RED), true);
             }
         }
     }

@@ -4,7 +4,7 @@
   "package": "lol.sylvie.nocombatelytra.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PlayerEntityMixin"
+    "PlayerMixin"
   ],
   "client": [
   ],
