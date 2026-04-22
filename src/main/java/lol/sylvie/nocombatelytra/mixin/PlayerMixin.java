@@ -22,7 +22,9 @@ import java.util.UUID;
 @Mixin(Player.class)
 public abstract class PlayerMixin {
     @Shadow public abstract GameProfile getGameProfile();
-    @Shadow public abstract void displayClientMessage(Component message, boolean overlay);
+
+    @Shadow
+    public abstract void sendOverlayMessage(Component message);
 
     @Unique
     Map<UUID, Long> lastDamaged = new HashMap<>();
@@ -66,9 +68,9 @@ public abstract class PlayerMixin {
             if (combatEndTimestamp > now) {
                 cir.setReturnValue(false);
                 int seconds = (int) Math.ceilDiv(combatEndTimestamp - now, 1000);
-                displayClientMessage(Component.literal("You may use your elytra in %s second(s)!"
-                                .replace("%s", String.valueOf(seconds)))
-                                .withStyle(ChatFormatting.RED), true);
+                sendOverlayMessage(Component.literal("You may use your elytra in %s second(s)!"
+                        .replace("%s", String.valueOf(seconds)))
+                        .withStyle(ChatFormatting.RED));
             }
         }
     }
